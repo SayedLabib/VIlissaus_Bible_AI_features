@@ -10,6 +10,11 @@ from app.core.config import settings, CORS_CONFIG
 from app.services.Bible_Chat_Service.Bible_chat_route import bible_chat_router
 
 from app.services.Daily_verse_generation.Verse_generation_route import verse_router as verse_generation_router
+
+from app.services.speech_to_text.speech_to_text_route import router as stt_router
+
+
+
 # Create FastAPI instance
 app = FastAPI(
     title=settings.app_name,
@@ -28,6 +33,8 @@ app.add_middleware(
 # Include routers
 app.include_router(bible_chat_router, prefix=settings.api_v1_prefix)
 app.include_router(verse_generation_router, prefix=settings.api_v1_prefix)
+app.include_router(stt_router, prefix=settings.api_v1_prefix)
+
 
 @app.get("/")
 async def root():
@@ -39,6 +46,9 @@ async def root():
         "environment": settings.environment,
         "endpoints": {
             "bible_chat": f"{settings.api_v1_prefix}/bible-chat/query",
+            "verse_generation": f"{settings.api_v1_prefix}/verse-generation/random",
+            "speech_to_text": f"{settings.api_v1_prefix}/stt/transcribe",
+            "stt_info": f"{settings.api_v1_prefix}/stt/info",
             "health_check": f"{settings.api_v1_prefix}/bible-chat/health",
             "examples": f"{settings.api_v1_prefix}/bible-chat/examples",
             "documentation": "/docs"
@@ -77,6 +87,9 @@ async def not_found_handler(request, exc):
                 f"POST {settings.api_v1_prefix}/bible-chat/query",
                 f"GET {settings.api_v1_prefix}/bible-chat/health",
                 f"GET {settings.api_v1_prefix}/bible-chat/examples",
+                f"POST {settings.api_v1_prefix}/verse-generation/random",
+                f"POST {settings.api_v1_prefix}/stt/transcribe",
+                f"GET {settings.api_v1_prefix}/stt/info",
                 "GET /docs"
             ]
         }
