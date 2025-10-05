@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 import uvicorn
 
 # Import configuration
@@ -12,6 +14,8 @@ from app.services.Bible_Chat_Service.Bible_chat_route import bible_chat_router
 from app.services.Daily_verse_generation.Verse_generation_route import verse_router as verse_generation_router
 
 from app.services.speech_to_text.speech_to_text_route import router as stt_router
+
+from app.services.audio_generation.audio_route import audio_router
 
 
 
@@ -30,10 +34,16 @@ app.add_middleware(
     **CORS_CONFIG
 )
 
+# Mount static files directory for audio files
+static_dir = Path("static")
+static_dir.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Include routers
 app.include_router(bible_chat_router, prefix=settings.api_v1_prefix)
 app.include_router(verse_generation_router, prefix=settings.api_v1_prefix)
 app.include_router(stt_router, prefix=settings.api_v1_prefix)
+app.include_router(audio_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/")
@@ -48,6 +58,8 @@ async def root():
             "bible_chat": f"{settings.api_v1_prefix}/bible-chat/query",
             "verse_generation": f"{settings.api_v1_prefix}/verse-generation/random",
             "speech_to_text": f"{settings.api_v1_prefix}/stt/transcribe",
+            "audio_generation": f"{settings.api_v1_prefix}/audio/generate",
+            "audio_stream": f"{settings.api_v1_prefix}/audio/generate-stream",
             "stt_info": f"{settings.api_v1_prefix}/stt/info",
             "health_check": f"{settings.api_v1_prefix}/bible-chat/health",
             "examples": f"{settings.api_v1_prefix}/bible-chat/examples",
@@ -90,6 +102,8 @@ async def not_found_handler(request, exc):
                 f"POST {settings.api_v1_prefix}/verse-generation/random",
                 f"POST {settings.api_v1_prefix}/stt/transcribe",
                 f"GET {settings.api_v1_prefix}/stt/info",
+                f"POST {settings.api_v1_prefix}/audio/generate",
+                f"POST {settings.api_v1_prefix}/audio/generate-stream",
                 "GET /docs"
             ]
         }

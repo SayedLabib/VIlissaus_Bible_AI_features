@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     openai_frequency_penalty: float = 0.0
     openai_presence_penalty: float = 0.0
     
+    # ElevenLabs Settings
+    elevenlabs_api_key: str = Field(..., alias="ELEVENLABS_API_KEY")
+    
     # Application Settings
     app_name: str = "Vilisasu Bible AI"
     app_version: str = "1.0.0"
