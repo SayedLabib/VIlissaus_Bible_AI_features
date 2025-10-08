@@ -13,8 +13,7 @@ async def generate_audio(request: AudioGenerationRequest, http_request: Request)
     
     if not result["success"]:
         raise HTTPException(status_code=result["status"], detail="Failed to generate audio")
-    
-    base_url = str(http_request.base_url).rstrip('/')
+    base_url = "https://www.ai.appityhq.com/"
     audio_url = f"{base_url}/api/v1/audio/download/{result['request_id']}"
     
     return AudioGenerationResponse(
