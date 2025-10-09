@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 
 class VerseDetail(BaseModel):
@@ -35,35 +35,17 @@ class PrayerDetail(BaseModel):
     )
 
 
+class VerseItem(BaseModel):
+    verse_id: str
+    details: VerseDetail
+
+
+class PrayerItem(BaseModel):
+    prayer_id: str
+    details: PrayerDetail
+
+
 class VerseGenerationResponse(BaseModel):
-    """Response model for verse and prayer generation"""
-    verse01: VerseDetail
-    verse02: VerseDetail
-    verse03: VerseDetail
-    verse04: VerseDetail
-    verse05: VerseDetail
-    verse06: VerseDetail
-    verse07: VerseDetail
-    verse08: VerseDetail
-    verse09: VerseDetail
-    verse10: VerseDetail
-    verse11: VerseDetail
-    verse12: VerseDetail
-    verse13: VerseDetail
-    verse14: VerseDetail
-    verse15: VerseDetail
-    prayer01: PrayerDetail
-    prayer02: PrayerDetail
-    prayer03: PrayerDetail
-    prayer04: PrayerDetail
-    prayer05: PrayerDetail
-    prayer06: PrayerDetail
-    prayer07: PrayerDetail
-    prayer08: PrayerDetail
-    prayer09: PrayerDetail
-    prayer10: PrayerDetail
-    prayer11: PrayerDetail
-    prayer12: PrayerDetail
-    prayer13: PrayerDetail
-    prayer14: PrayerDetail
-    prayer15: PrayerDetail
+    """Response model for verse and prayer generation with verses and prayers in lists"""
+    verses: List[VerseItem]
+    prayers: List[PrayerItem]
