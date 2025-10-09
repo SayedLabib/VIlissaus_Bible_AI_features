@@ -12,16 +12,12 @@ client = openai.OpenAI(api_key=settings.openai_api_key)
 
 def generate_verses_batch(batch_num: int, batch_size: int = 5) -> List[Tuple[str, str, str]]:
     """Generate a batch of Bible verses (5 at a time)"""
-    print(f"=" * 50)
-    print(f"GENERATING VERSES BATCH {batch_num}")
-    print(f"=" * 50)
+
     
     random_seed = int(time.time() * 1000) + random.randint(1, 10000)
     bible_versions = ["KJV", "NIV", "ESV", "NLT"]
     primary_versions = random.sample(bible_versions, k=2)
     
-    print(f"Random seed: {random_seed}")
-    print(f"Primary versions: {primary_versions}")
     
     prompt = f"""Generate exactly {batch_size} unique Bible verses.
 
@@ -60,7 +56,6 @@ Seed: {random_seed}"""
     )
     
     content = response.choices[0].message.content.strip()
-    print(f"Raw response first 100 chars: {content[:100]}...")
     
     # Remove any markdown wrapper if present
     if content.startswith('```'):
@@ -71,27 +66,15 @@ Seed: {random_seed}"""
     
     try:
         parsed = json.loads(content)
-        print(f"✓ Batch {batch_num}: Successfully parsed {len(parsed)} verses")
         return parsed
     except json.JSONDecodeError as e:
-        print(f"✗ JSON error in batch {batch_num}: {e}")
-        # Return default verses for this batch as fallback
-        default_verses = []
-        for i in range(batch_size):
-            default_verses.append([
-                f"Default verse text for batch {batch_num}, item {i+1}",
-                f"This is a fallback verse due to JSON parsing error in batch {batch_num}",
-                f"Joshua 1:{batch_num}{i+1} NIV"
-            ])
-        return default_verses
+        # Return empty list if parsing fails
+        return []
 
 
 def generate_prayers_batch(batch_num: int, batch_size: int = 5) -> List[Tuple[str, str]]:
     """Generate a batch of prayers (5 at a time)"""
-    print(f"=" * 50)
-    print(f"GENERATING PRAYERS BATCH {batch_num}")
-    print(f"=" * 50)
-    
+
     random_seed = int(time.time() * 1000) + random.randint(1, 10000)
     
     prompt = f"""Generate exactly {batch_size} unique prayers.
@@ -143,26 +126,15 @@ Seed: {random_seed}"""
     
     try:
         parsed = json.loads(content)
-        print(f"✓ Batch {batch_num}: Successfully parsed {len(parsed)} prayers")
         return parsed
     except json.JSONDecodeError as e:
-        print(f"✗ JSON error in batch {batch_num}: {e}")
-        # Return default prayers for this batch as fallback
-        default_prayers = []
-        for i in range(batch_size):
-            default_prayers.append([
-                f"Default Prayer {batch_num}-{i+1}",
-                f"Heavenly Father, please guide us in your ways. Help us to trust in your perfect plan for our lives. Give us strength to face our challenges. In Jesus' name, Amen."
-            ])
-        return default_prayers
+        return []
 
 
 def generate_random_verses() -> Dict[str, Any]:
     """Generate 15 verses and 15 prayers using concurrent API calls"""
     
-    print("\n" + "=" * 60)
-    print("STARTING VERSE AND PRAYER GENERATION WITH BATCHES")
-    print("=" * 60 + "\n")
+
     
     all_verses = []
     all_prayers = []
@@ -185,50 +157,41 @@ def generate_random_verses() -> Dict[str, Any]:
             batch_result = future.result()
             all_prayers.extend(batch_result)
     
-    print(f"\n✓ Total verses collected: {len(all_verses)}")
-    print(f"✓ Total prayers collected: {len(all_prayers)}")
+    # Limit to 15 items of each
+    verses = all_verses[:15]
+    prayers = all_prayers[:15]
     
-    # Create result dictionary in the exact format required
-    result = {}
+    # Create result lists in the requested format
+    verses_list = []
+    prayers_list = []
     
     # Process verses
-    for i in range(min(15, len(all_verses))):
-        verse = all_verses[i]
-        result[f"verse{i+1:02d}"] = VerseDetail(
-            text=verse[0],
-            context=verse[1],
-            reference=verse[2]
-        )
+    for i, verse in enumerate(verses):
+        verse_id = f"verse{i+1:02d}"
+        verses_list.append({
+            "verse_id": verse_id,
+            "details": {
+                "text": verse[0],
+                "context": verse[1],
+                "reference": verse[2]
+            }
+        })
     
     # Process prayers
-    for i in range(min(15, len(all_prayers))):
-        prayer = all_prayers[i]
-        result[f"prayer{i+1:02d}"] = PrayerDetail(
-            text=prayer[0],
-            context=prayer[1]
-        )
+    for i, prayer in enumerate(prayers):
+        prayer_id = f"prayer{i+1:02d}"
+        prayers_list.append({
+            "prayer_id": prayer_id,
+            "details": {
+                "text": prayer[0],
+                "context": prayer[1]
+            }
+        })
     
-    # Ensure we have exactly 15 of each
-    # Pad with defaults if needed
-    for i in range(len(all_verses), 15):
-        result[f"verse{i+1:02d}"] = VerseDetail(
-            text="The Lord is my shepherd; I shall not want.",
-            context="This verse reminds us that God provides and cares for us like a shepherd cares for his sheep.",
-            reference="Psalm 23:1 KJV"
-        )
+    result = {
+        "verses": verses_list,
+        "prayers": prayers_list
+    }
     
-    for i in range(len(all_prayers), 15):
-        result[f"prayer{i+1:02d}"] = PrayerDetail(
-            text="Prayer for Daily Guidance",
-            context="Heavenly Father, guide my steps today. Show me the path You have prepared for me and give me wisdom to follow it. Help me to trust in Your perfect plan even when I don't understand. In Jesus' name, Amen."
-        )
-    
-    print("\n" + "=" * 60)
-    print("FINAL RESULT SUMMARY")
-    print("=" * 60)
-    print(f"Total keys: {len(result)}")
-    print(f"Verses: {len([k for k in result.keys() if k.startswith('verse')])}")
-    print(f"Prayers: {len([k for k in result.keys() if k.startswith('prayer')])}")
-    print("=" * 60 + "\n")
     
     return result
